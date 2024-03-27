@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        font-size: larger;
+        margin: 0;
+        padding: 0;
+        background-image: url('C:/Users/om/Downloads/ru.png');
+    }
+    .container {
+        margin-top: 50px;
+        text-align: center;
+    }
+    .balance-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .balance-eye {
+        margin-left: 10px;
+        cursor: pointer;
+    }
+    .table-container {
+        margin-top: 20px;
+    }
+    .table-container table {
+        width: 100%;
+    }
+    .table-container table th, .table-container table td {
+        padding: 10px;
+        border: 5px solid #151816;
+    }
+    .table-container table th {
+        background-color: #e2a218;
+    }
+    .form-control {
+        width: 100%;
+    }
+    .error-message {
+        color: red;
+        font-size: 0.8em;
+    }
+    td{
+        color: antiquewhite;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h2>Hey Rohan😊,</h2>
+    <h4>Welcome to India Bank</h4>
+    <div>
+        <p>Name: Rohan</p>
+        <p>Account Number: XXXXXXXXX</p>
+        <p>Mobile Number: XXXXXXXXXX</p>
+    </div>
+    <div class="balance-container">
+        <span>Balance:</span>
+        <span id="balanceAmount" style="display: none;">$0.00</span>
+        <span class="balance-eye" onclick="toggleBalanceVisibility()">&#x1F441;</span>
+    </div>
+    <div class="table-container row">
+        <div class="col-md-6">
+            <div>Total Deposit Amount: <span id="totalDepositAmount">$0.00</span></div>
+            <h3>Deposit</h3>
+            <table>
+                <tr>
+                    <th>Amount</th>
+                    <td><input type="text" class="form-control" id="depositAmount" oninput="validateAmount(this)"></td>
+                </tr>
+                <tr>
+                    <th>Type</th>
+                    <td>
+                        <select class="form-control" id="depositType">
+                            <option value="Savings">Savings</option>
+                            <option value="Current">Current</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th>IFSC Number</th>
+                    <td><input type="text" class="form-control" id="depositIFSC"></td>
+                </tr>
+                <tr>
+                    <th>Description</th>
+                    <td><input type="text" class="form-control" id="depositDescription"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><button type="button" class="btn btn-primary btn-block" onclick="deposit()">Deposit</button></td>
+                </tr>
+            </table>
+            <div id="depositErrorMessage" class="error-message" style="display: none;">Please enter a valid amount (integer) and IFSC number (format: ABCD0123456).</div>
+        </div>
+        <div class="col-md-6">
+            <div>Total Withdraw Amount: <span id="totalWithdrawAmount">$0.00</span></div>
+            <h3>Withdraw</h3>
+            <table>
+                <tr>
+                    <th>Amount</th>
+                    <td><input type="text" class="form-control" id="withdrawAmount" oninput="validateAmount(this)"></td>
+                </tr>
+                <tr>
+                    <th>Type</th>
+                    <td>
+                        <select class="form-control" id="withdrawType">
+                            <option value="Savings">Savings</option>
+                            <option value="Current">Current</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th>IFSC Number</th>
+                    <td><input type="text" class="form-control" id="withdrawIFSC"></td>
+                </tr>
+                <tr>
+                    <th>Description</th>
+                    <td><input type="text" class="form-control" id="withdrawDescription"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><button type="button" class="btn btn-primary btn-block" onclick="withdraw()">Withdraw</button></td>
+                </tr>
+            </table>
+            <div id="withdrawErrorMessage" class="error-message" style="display: none;">Please enter a valid amount (integer) and IFSC number (format: ABCD0123456).</div>
+        </div>
+    </div>
+    <div class="table-container row" id="transactionTable" style="display: none;">
+        <div class="col-md-12">
+            <h3>Transaction History</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Serial Number</th>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Type</th>
+                        <th>Current Balance</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionBody">
+                  
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+</div>
+<button type="button" class="btn btn-primary" onclick="logout()">Logout</button>
+</div>
+</div>
+
+<script>
+    var balanceVisible = false;
+    var balanceAmount = 0;
+    var totalDepositAmount = 0; // New variable for total deposit amount
+    var totalWithdrawAmount = 0; // New variable for total withdraw amount
+    var transactionNumber = 1;
+
+    function toggleBalanceVisibility() {
+        balanceVisible = !balanceVisible;
+        var balanceAmountElement = document.getElementById("balanceAmount");
+        if (balanceVisible) {
+            balanceAmountElement.style.display = "inline"; 
+        } else {
+            balanceAmountElement.style.display = "none"; 
+        }
+    }
+
+    function validateAmount(input) {
+        input.value = input.value.replace(/\D/g, ''); 
+    }
+
+    function deposit() {
+        var depositAmount = parseInt(document.getElementById("depositAmount").value);
+        var depositIFSC = document.getElementById("depositIFSC").value;
+        var depositDescription = document.getElementById("depositDescription").value;
+
+        if (!(/^\d+$/.test(depositAmount)) || !(/^[A-Za-z]{4}[0][A-Z0-9a-z]{6}$/.test(depositIFSC))) {
+            document.getElementById("depositErrorMessage").style.display = "block";
+            return;
+        }
+
+        var currentDate = getCurrentDate();
+        var currentBalance = balanceAmount + depositAmount;
+        addToTransactionTable(transactionNumber++, currentDate, depositDescription, depositAmount, "Credit", currentBalance);
+
+        balanceAmount += depositAmount; 
+        totalDepositAmount += depositAmount; // Update total deposit amount
+        document.getElementById("balanceAmount").innerText = balanceAmount; 
+        document.getElementById("totalDepositAmount").innerText = "$" + totalDepositAmount.toFixed(2); // Display total deposit amount
+        resetDepositFields();
+
+        showTransactionTable();
+    }
+
+    function withdraw() {
+        var withdrawAmount = parseInt(document.getElementById("withdrawAmount").value);
+        var withdrawIFSC = document.getElementById("withdrawIFSC").value;
+        var withdrawDescription = document.getElementById("withdrawDescription").value;
+
+        if (!(/^\d+$/.test(withdrawAmount)) || !(/^[A-Za-z]{4}[0][A-Z0-9a-z]{6}$/.test(withdrawIFSC))) {
+            document.getElementById("withdrawErrorMessage").style.display = "block";
+            return;
+        }
+
+        if (withdrawAmount > balanceAmount) {
+            document.getElementById("withdrawErrorMessage").innerText = "Withdrawal amount exceeds current balance.";
+            document.getElementById("withdrawErrorMessage").style.display = "block";
+            return;
+        }
+
+        var currentDate = getCurrentDate();
+        var currentBalance = balanceAmount - withdrawAmount;
+        addToTransactionTable(transactionNumber++, currentDate, withdrawDescription, withdrawAmount, "Debit", currentBalance);
+
+        balanceAmount -= withdrawAmount; 
+        totalWithdrawAmount += withdrawAmount; // Update total withdraw amount
+        document.getElementById("balanceAmount").innerText = balanceAmount; 
+        document.getElementById("totalWithdrawAmount").innerText = "$" + totalWithdrawAmount.toFixed(2); // Display total withdraw amount
+        resetWithdrawFields();
+
+        showTransactionTable();
+    }
+
+    function addToTransactionTable(serialNumber, date, description, amount, type, currentBalance) {
+        var tableBody = document.getElementById("transactionBody");
+        var newRow = tableBody.insertRow(-1);
+        var serialCell = newRow.insertCell(0);
+        var dateCell = newRow.insertCell(1);
+        var descriptionCell = newRow.insertCell(2);
+        var amountCell = newRow.insertCell(3);
+        var typeCell = newRow.insertCell(4);
+        var balanceCell = newRow.insertCell(5);
+
+        serialCell.innerText = serialNumber;
+        dateCell.innerText = date;
+        descriptionCell.innerText = description;
+        amountCell.innerText = amount;
+        typeCell.innerText = type;
+        balanceCell.innerText = currentBalance;
+    }
+
+    function showTransactionTable() {
+        var transactionTable = document.getElementById("transactionTable");
+        transactionTable.style.display = "block";
+    }
+
+    function getCurrentDate() {
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = now.getMonth() + 1;
+        var day = now.getDate();
+        return year + "-" + (month < 10 ? "0" + month : month) + "-" + (day < 10 ? "0" + day : day);
+    }
+
+    function resetDepositFields() {
+        document.getElementById("depositAmount").value = ""; 
+        document.getElementById("depositIFSC").value = ""; 
+        document.getElementById("depositDescription").value = ""; 
+        document.getElementById("depositErrorMessage").style.display = "none";
+    }
+
+    function resetWithdrawFields() {
+        document.getElementById("withdrawAmount").value = ""; 
+        document.getElementById("withdrawIFSC").value = ""; 
+        document.getElementById("withdrawDescription").value = ""; 
+        document.getElementById("withdrawErrorMessage").style.display = "none";
+    }
+
+    function logout() {
+        // Redirect to the login page (index.html)
+        window.location.href = "index.html";
+    }
+    
+</script>
+</body>
+</html>
